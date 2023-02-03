@@ -1,20 +1,22 @@
 let canHeight;
 let canWidth;
 
-const side = 50;
-const cols = 10;
-const rows = 10;
+const side = 20;
+const cols = 40;
+const rows = 40;
 
 let grid = []
+let backtrackStack = [];
 
 let current;
+let itterations = 1;
 
 
 function setup() {
     canWidth = side * cols;
     canHeight = side * rows;
     createCanvas(canWidth, canHeight)
-    frameRate(5)
+    frameRate(50)
 
     for (let y = 0; y < rows; y++) {
         for (let x = 0; x < rows; x++) {
@@ -35,15 +37,18 @@ function draw() {
     const next = current.checkNeighbours();
     if (next != undefined) {
         next.visited = true;
+        backtrackStack.push(current)
+        knockDownWalls(current, next)
         current = next;
     }
+    else if (backtrackStack.length > 0) {
+        current = backtrackStack.pop()
+    }
+    else {
+        noLoop()
+    }
 
-    noLoop();
-}
 
-function getIndex(i, j) {
-    if (i < 0 || j < 0 || i >= rows || j >= cols) { return -1 }
-    return i + j * cols;
 }
 
 function Cell(i, j) {
@@ -86,9 +91,38 @@ function Cell(i, j) {
         if (this.walls.lt === true) line(x, y + side, x, y)
 
         if (this.visited) {
+            noStroke()
             fill(0, 255, 255, 100)
             rect(x, y, side, side)
         }
 
+    }
+}
+
+// Helper functions
+function getIndex(i, j) {
+    if (i < 0 || j < 0 || i >= rows || j >= cols) { return -1 }
+    return i + j * cols;
+}
+
+function knockDownWalls(a, b) {
+    const x = a.i - b.i;
+    const y = a.j - b.j;
+
+    if (x === 1) {
+        a.walls.lt = false
+        b.walls.rt = false
+    }
+    if (x === -1) {
+        a.walls.rt = false
+        b.walls.lt = false
+    }
+    if (y === 1) {
+        a.walls.tp = false
+        b.walls.bm = false
+    }
+    if (y === -1) {
+        a.walls.bm = false
+        b.walls.tp = false
     }
 }
